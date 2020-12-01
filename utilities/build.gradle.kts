@@ -6,4 +6,8 @@ plugins {
     id("advent.of.code.kotlin.kotlin-library-conventions")
 }
 
-dependencies {}
+dependencies {
+    implementation("io.vavr:vavr:0.10.2")
+    implementation("io.vavr:vavr-kotlin:0.10.2")
+    implementation("com.google.guava:guava:28.1-jre")
+}
