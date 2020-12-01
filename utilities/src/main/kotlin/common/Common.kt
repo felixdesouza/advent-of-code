@@ -1,5 +1,4 @@
-package advent.of.code.kotlin.utilities
-
+package common
 
 import com.google.common.collect.Queues
 import com.google.common.graph.Graph
@@ -20,6 +19,8 @@ fun openFile(path: String): String {
         .javaClass
         .getResource(path)
         .toURI()
+
+    println(resourcePath)
 
     return File(resourcePath).readText().trimEnd()
 }

@@ -8,4 +8,5 @@ plugins {
 
 dependencies {
     implementation(project(":utilities"))
+    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
