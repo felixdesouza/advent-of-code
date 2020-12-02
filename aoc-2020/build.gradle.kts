@@ -8,5 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":utilities"))
-    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    implementation("ru.lanwen.verbalregex:java-verbal-expressions:1.5")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
