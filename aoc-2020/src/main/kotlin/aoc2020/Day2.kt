@@ -44,7 +44,3 @@ object Day2 {
         val isValid = (password[position1 - 1] == letterRequirement) xor (password[position2 - 1] == letterRequirement)
     }
 }
-
-fun main() {
-    println(Day2.part1(Day2.part1Input))
-}
