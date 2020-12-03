@@ -24,7 +24,17 @@ internal class Day3Test {
     }
 
     @Test
-    internal fun `part 2 real input`() {
+    internal fun `part 1 real input`() {
         assertEquals(232, Day3.part1(Day3.input))
+    }
+
+    @Test
+    internal fun `part 2 test input`() {
+        assertEquals(336, Day3.part2(testInput))
+    }
+
+    @Test
+    internal fun `part 2 real input`() {
+        assertEquals(3952291680, Day3.part2(Day3.input))
     }
 }
