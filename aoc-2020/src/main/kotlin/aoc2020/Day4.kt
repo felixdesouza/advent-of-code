@@ -1,6 +1,7 @@
 package aoc2020
 
 import common.openFile
+import ru.lanwen.verbalregex.VerbalExpression
 
 object Day4 {
 
@@ -50,9 +51,36 @@ object Day4 {
         val eyeColour: String,
         val passportId: String,
         val countryId: String?
-    )
+    ) {
+        companion object {
+            private val validEyeColours = setOf("amb", "blu", "brn", "gry", "grn", "hzl", "oth")
+            private val passportIdRegex = VerbalExpression.regex().digit().count(9).build()
+            private val hairColourRegex = VerbalExpression.regex().find("#").range("0", "9", "a", "f").count(6).build()
+            private val heightRegex = VerbalExpression.regex()
+                .capture().digit().oneOrMore().endCapture()
+                .capt().oneOf("cm", "in").endCapt()
+                .build()
+        }
+
+        fun isValid(): Boolean {
+            return birthYear in (1920..2002)
+                    && issueYear in (2010..2020)
+                    && expirationYear in (2020..2030)
+                    && eyeColour in validEyeColours
+                    && passportIdRegex.testExact(passportId)
+                    && hairColourRegex.testExact(hairColour)
+                    && (heightRegex.testExact(height) && when(heightRegex.getText(height, 2)) {
+                        "in" -> heightRegex.getText(height, 1).toInt() in (59..76)
+                        "cm" -> heightRegex.getText(height, 1).toInt() in (150..193)
+                        else -> false
+                    })
+
+        }
+    }
 
     fun part1(input: String) = parseInput(input).count()
+
+    fun part2(input: String) = parseInput(input).filter { it.isValid() }.count()
 
 }
 
