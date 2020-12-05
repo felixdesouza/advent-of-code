@@ -13,4 +13,9 @@ internal class Day5Test {
     internal fun `part 1 real input`() {
         Day5.part1(Day5.input).let { println(it) }
     }
+
+    @Test
+    internal fun `part 2`() {
+        assertEquals(569, Day5.part2(Day5.input))
+    }
 }

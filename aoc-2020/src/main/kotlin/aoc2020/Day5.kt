@@ -7,7 +7,6 @@ object Day5 {
 
     fun part1(input: Set<String>): Int {
         return input.associateWith { parseIntoNumber(it) }
-            .onEach { println(it) }
             .values
             .max()!!
     }
@@ -20,7 +19,24 @@ object Day5 {
                 else -> throw AssertionError("invalid")
             }
         }.joinToString(separator = "")
-            .also { println(it) }
             .let { Integer.valueOf(it, 2) }
+    }
+
+    fun part2(passportNumbers: Set<String>): Int {
+        val sorted = input.map { parseIntoNumber(it) }.sorted()
+        var l = 0
+        var r = sorted.size - 1
+
+        while (l < r) {
+            val m = (l + r) / 2
+            println("${sorted[m]} ${sorted[0]} ${sorted[0] + m} ${sorted[l]} ${sorted[r]}")
+            if (sorted[m] == sorted[0] + m) {
+                l = m + 1
+            } else {
+                r = m - 1
+            }
+        }
+
+        return sorted[l] - 1
     }
 }
