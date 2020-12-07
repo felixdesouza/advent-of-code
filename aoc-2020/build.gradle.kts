@@ -9,6 +9,7 @@ plugins {
 dependencies {
     implementation(project(":utilities"))
     implementation("ru.lanwen.verbalregex:java-verbal-expressions:1.5")
+    implementation("com.google.guava:guava:28.1-jre")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
