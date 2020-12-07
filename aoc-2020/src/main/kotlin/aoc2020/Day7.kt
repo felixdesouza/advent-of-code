@@ -48,8 +48,27 @@ object Day7 {
             .count()
     }
 
-}
+    fun part2(input: List<Triple<String, String, Int>>): Int {
+        val graph = ValueGraphBuilder.directed().build<String, Int>()
 
-fun main() {
+        input.forEach { (source, sink, count) ->
+            graph.putEdgeValue(source, sink, count)
+        }
+
+        if (Graphs.hasCycle(graph.asGraph())) {
+            throw AssertionError("deal with this")
+        }
+
+        fun count(source: String): Int {
+            return graph.successors(source)
+                .sumBy { sink ->
+                    val count = graph.edgeValue(source, sink).get()
+
+                    count + count * count(sink)
+                }
+        }
+
+        return count("shiny gold")
+    }
 
 }
