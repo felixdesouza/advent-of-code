@@ -24,6 +24,16 @@ internal class Day8Test {
 
     @Test
     internal fun `part 1 real input`() {
-        println(Day8.part1(Day8.input))
+        assertEquals(1801, Day8.part1(Day8.input))
+    }
+
+    @Test
+    internal fun `part 2 test input`() {
+        assertEquals(8, Day8.part2(testInput))
+    }
+
+    @Test
+    internal fun name() {
+        assertEquals(2060, Day8.part2(Day8.input))
     }
 }
