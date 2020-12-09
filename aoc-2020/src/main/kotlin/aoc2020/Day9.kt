@@ -17,4 +17,27 @@ object Day9 {
             }
             .let { it[window] }
     }
+
+    fun part2(input: List<Long>, invalidNumber: Long): Long {
+        var leftIndex = 0
+        var rightIndex = 1
+        var currentSum = input.subList(leftIndex, rightIndex).sum()
+
+        while (rightIndex < input.size && leftIndex < rightIndex) {
+            if (currentSum == invalidNumber) {
+                val finalSublist = input.subList(leftIndex, rightIndex)
+                return finalSublist.min()!! + finalSublist.max()!!
+            }
+
+            if (currentSum + input[rightIndex] > invalidNumber) {
+                currentSum -= input[leftIndex]
+                leftIndex += 1
+            } else {
+                currentSum += input[rightIndex]
+                rightIndex += 1
+            }
+        }
+
+        throw AssertionError("Not found")
+    }
 }
