@@ -48,6 +48,28 @@ object Day11 {
         return map
     }
 
+    fun iterate2(dimensions: Pair<Int, Int>, grid: Map<Pair<Int, Int>, Char>): Map<Pair<Int, Int>, Char> {
+        val map = mutableMapOf<Pair<Int, Int>, Char>()
+        val (rows, cols) = dimensions
+        println("---")
+        for (x in (0 until rows)) {
+            for (y in (0 until cols)) {
+                val current = grid[(x to y)]!!
+                val new = when {
+                    current == 'L' && adjacent2(x, y, grid) == 0 -> '#'
+                    current == '#' && adjacent2(x, y, grid) >= 5 -> 'L'
+                    else -> current
+                }
+                //println("$x,$y: $current -> $new")
+//                print(new)
+                map[(x to y)] = new
+            }
+//            println()
+        }
+
+        return map
+    }
+
     fun part1(dimensions: Pair<Int, Int>, grid: Map<Pair<Int, Int>, Char>): Pair<Int, Int> {
         val stable = generateSequence(grid) { prev -> iterate(dimensions, prev) }
             .windowed(2)
@@ -60,6 +82,17 @@ object Day11 {
         return (stable.index to stable.value.first().values.count { it == '#' })
     }
 
+    fun part2(dimensions: Pair<Int, Int>, grid: Map<Pair<Int, Int>, Char>): Pair<Int, Int> {
+        val stable = generateSequence(grid) { prev -> iterate2(dimensions, prev) }
+            .windowed(2)
+            .withIndex()
+            .first { (_, pair) ->
+                val (prev, curr) = pair
+                prev == curr
+            }
+
+        return (stable.index to stable.value.first().values.count { it == '#' })
+    }
     fun adjacent(x: Int, y: Int, grid: Map<Pair<Int, Int>, Char>): Int {
         val coord = Coordinate(x, y)
         val neighbours = coord.neighbours() + coord.diagonalNeighbours()
@@ -67,9 +100,32 @@ object Day11 {
             .mapNotNull { grid[it] }
             .count { it == '#' }
     }
+
+    val origin = Coordinate(0, 0)
+    val vectors = origin.diagonalNeighbours().plus(origin.neighbours())
+    val chars = setOf('L', '#')
+
+    fun adjacent2(x: Int, y: Int, grid: Map<Pair<Int, Int>, Char>): Int {
+        val coord = Coordinate(x, y)
+        return vectors.count { vector ->
+            generateSequence(coord.plus(vector)) { curr -> curr.plus(vector) }
+                .takeWhile { grid[it.x to it.y] != null }
+                .firstOrNull { grid[it.x to it.y] in chars }
+                ?.let { grid[it.x to it.y] == '#' } ?: false
+        }
+    }
+
+    fun Coordinate.plus(coordinate: Coordinate): Coordinate {
+        return Coordinate(this.x + coordinate.x, this.y + coordinate.y)
+    }
 }
 
 fun main() {
     val (dim, grid) = Day11.input
     println(Day11.part1(dim, grid))
+
+    val (testDim, testGrid) = Day11.testInput
+
+    println(Day11.part2(testDim, testGrid))
+    println(Day11.part2(dim, grid))
 }
