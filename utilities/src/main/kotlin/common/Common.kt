@@ -74,6 +74,14 @@ data class Coordinate(val x: Int, val y: Int) {
             this.copy(x = x + 1, y = y - 1),
             this.copy(x = x + 1, y = y + 1))
     }
+
+    fun allNeighbours(): List<Coordinate> {
+        return neighbours().plus(diagonalNeighbours())
+    }
+
+    fun plus(coordinate: Coordinate): Coordinate {
+        return Coordinate(this.x + coordinate.x, this.y + coordinate.y)
+    }
 }
 
 fun gcd(a: Int, b: Int): Int = gcd(a.toLong(), b.toLong()).toInt()
@@ -141,4 +149,41 @@ fun <T> dijkstra(graph: ValueGraph<T, Int>, startingNode: T, validate: Boolean =
     if (validate && (graph.nodes() - visited).isNotEmpty()) throw UnsupportedOperationException()
 
     return distances
+}
+
+data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumns: Int) {
+
+    companion object {
+        fun parse(input: String): Grid<Char> {
+            return parse(input) {it}
+        }
+
+        fun <T> parse(input: String, f: (char: Char) -> T): Grid<T> {
+            val lines = input.lines()
+            val numRows = lines.size
+            val numColumns = lines.first().length
+            val grid = lines.withIndex()
+                .map { (row, text) -> text.map(f).withIndex().map { (col, value) -> Coordinate(col, row) to value } }
+                .flatten()
+                .toMap()
+            return Grid(grid, numRows, numColumns)
+        }
+    }
+
+    fun print() {
+        for (y in (0 until numRows)) {
+            for (x in (0 until numColumns)) {
+                print(grid[Coordinate(x, y)])
+            }
+            println()
+        }
+    }
+
+    fun <R> mapGrid(f: (Coordinate, T) -> R): Grid<R> {
+        return Grid(grid.mapValues { (coordinate, value) -> f(coordinate, value) }, numRows, numColumns)
+    }
+
+    operator fun get(key: Coordinate): T? {
+        return grid[key]
+    }
 }
