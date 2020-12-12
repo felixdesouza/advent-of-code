@@ -77,7 +77,7 @@ object Day12 {
             val (ship, waypoint) = currState
             val (action, operand) = next
 
-            val waypointState = when (action) {
+            when (action) {
                 'L' -> currState.copy(waypointVector = rotate(waypoint, 360 - operand))
                 'R' -> currState.copy(waypointVector = rotate(waypoint, operand))
                 'F' -> currState.copy(shipCoordinate = ship + waypoint * operand)
@@ -87,9 +87,6 @@ object Day12 {
                 'W' -> currState.copy(waypointVector = waypoint + directionToCoord(270) * operand)
                 else -> throw AssertionError("invalid $action")
             }
-
-            println(waypointState)
-            waypointState
 
         }
         return abs(newCoord.x) + abs(newCoord.y)
