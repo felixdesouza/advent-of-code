@@ -43,10 +43,10 @@ data class Coordinate(val x: Int, val y: Int) {
 
     fun next(vector: Vector): Coordinate {
         return when (vector.direction) {
-            "L" -> Coordinate(this.x - vector.distance, this.y)
-            "R" -> Coordinate(this.x + vector.distance, this.y)
-            "U" -> Coordinate(this.x, this.y + vector.distance)
-            "D" -> Coordinate(this.x, this.y - vector.distance)
+            "W" -> Coordinate(this.x - vector.distance, this.y)
+            "E" -> Coordinate(this.x + vector.distance, this.y)
+            "N" -> Coordinate(this.x, this.y + vector.distance)
+            "S" -> Coordinate(this.x, this.y - vector.distance)
             else -> throw AssertionError()
         }
     }
@@ -79,8 +79,12 @@ data class Coordinate(val x: Int, val y: Int) {
         return neighbours().plus(diagonalNeighbours())
     }
 
-    fun plus(coordinate: Coordinate): Coordinate {
+    operator fun plus(coordinate: Coordinate): Coordinate {
         return Coordinate(this.x + coordinate.x, this.y + coordinate.y)
+    }
+
+    operator fun times(multiplier: Int): Coordinate {
+        return Coordinate(this.x * multiplier, this.y * multiplier)
     }
 }
 
