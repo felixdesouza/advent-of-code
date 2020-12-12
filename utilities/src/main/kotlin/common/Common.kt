@@ -158,6 +158,10 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
             return parse(input) {it}
         }
 
+        fun <T> parseFile(fileName: String, f: (char: Char) -> T): Grid<T> {
+            return parse(openFile(fileName), f)
+        }
+
         fun <T> parse(input: String, f: (char: Char) -> T): Grid<T> {
             val lines = input.lines()
             val numRows = lines.size

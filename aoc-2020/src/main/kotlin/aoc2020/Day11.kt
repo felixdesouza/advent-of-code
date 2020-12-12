@@ -6,7 +6,14 @@ import common.Grid
 import common.openFile
 
 object Day11 {
-    val input  = Grid.parse(openFile("/aoc2020/day11.txt"))
+    val input = Grid.parse(openFile("/aoc2020/day11.txt"), this::parsePosition)
+
+    private fun parsePosition(it: Char) = when (it) {
+        '.' -> Position.Floor
+        '#' -> Position.Occupied
+        'L' -> Position.Empty
+        else -> throw AssertionError("invalid")
+    }
 
     val testInput = """
         L.LL.LL.LL
@@ -19,45 +26,48 @@ object Day11 {
         LLLLLLLLLL
         L.LLLLLL.L
         L.LLLLL.LL
-    """.trimIndent().let { Grid.parse(it) }
+    """.trimIndent().let { Grid.parse(it, this::parsePosition) }
 
-    fun part1(grid: Grid<Char>): Pair<Int, Int> {
-        fun adjacent(grid: Grid<Char>, coordinate: Coordinate): Int {
-            val neighbours = coordinate.allNeighbours()
-            return neighbours
+    enum class Position {
+        Floor, Empty, Occupied
+    }
+
+    fun part1(grid: Grid<Position>): Pair<Int, Int> {
+        fun adjacent(grid: Grid<Position>, coordinate: Coordinate): Int {
+            return coordinate.allNeighbours()
                 .mapNotNull { grid[it] }
-                .count { it == '#' }
+                .count { it == Position.Occupied }
         }
 
         return compute(grid) {
             it.mapGrid { coordinate, current ->
                 when {
-                    current == 'L' && adjacent(it, coordinate) == 0 -> '#'
-                    current == '#' && adjacent(it, coordinate) >= 4 -> 'L'
+                    current == Position.Empty && adjacent(it, coordinate) == 0 -> Position.Occupied
+                    current == Position.Occupied && adjacent(it, coordinate) >= 4 -> Position.Empty
                     else -> current
                 }
             }
         }
     }
 
-    fun part2(grid: Grid<Char>): Pair<Int, Int> {
+    fun part2(grid: Grid<Position>): Pair<Int, Int> {
         val vectors = origin.allNeighbours()
-        val chars = setOf('L', '#')
+        val validPositions = setOf(Position.Empty, Position.Occupied)
 
-        fun adjacent(grid: Grid<Char>, coordinate: Coordinate): Int {
+        fun adjacent(grid: Grid<Position>, coordinate: Coordinate): Int {
             return vectors.count { vector ->
                 generateSequence(coordinate.plus(vector)) { curr -> curr.plus(vector) }
                     .takeWhile { grid[it] != null }
-                    .firstOrNull { grid[it] in chars }
-                    ?.let { grid[it] == '#' } ?: false
+                    .firstOrNull { grid[it] in validPositions }
+                    ?.let { grid[it] == Position.Occupied } ?: false
             }
         }
 
         return compute(grid) {
             it.mapGrid { coordinate, current ->
                 when {
-                    current == 'L' && adjacent(it, coordinate) == 0 -> '#'
-                    current == '#' && adjacent(it, coordinate) >= 5 -> 'L'
+                    current == Position.Empty && adjacent(it, coordinate) == 0 -> Position.Occupied
+                    current == Position.Occupied && adjacent(it, coordinate) >= 5 -> Position.Empty
                     else -> current
                 }
             }
@@ -65,8 +75,8 @@ object Day11 {
     }
 
     fun compute(
-        grid: Grid<Char>,
-        f: (Grid<Char>) -> Grid<Char>
+        grid: Grid<Position>,
+        f: (Grid<Position>) -> Grid<Position>
     ): Pair<Int, Int> {
         val stable = generateSequence(grid) { prev -> f(prev) }
             .windowed(2)
@@ -76,7 +86,7 @@ object Day11 {
                 prev == curr
             }
 
-        return (stable.index to stable.value.first().grid.values.count { it == '#' })
+        return (stable.index to stable.value.first().grid.values.count { it == Position.Occupied })
     }
 
 }
