@@ -96,6 +96,15 @@ tailrec fun gcd(a: Long, b: Long): Long {
     }
 }
 
+fun crt(congruences: List<Pair<Long, Long>>): Long {
+    val n = congruences.map { it.second }.reduce { a, b -> a * b }
+    return congruences.fold(0L) { curr, (a_i, n_i) ->
+        val y_i = n / n_i
+        val z_i = y_i.toBigInteger().modInverse(n_i.toBigInteger()).longValueExact()
+        (curr + a_i*y_i*z_i) % n
+    }.let { (it + n) % n }
+}
+
 fun lcm(a: Long, b: Long): Long = a / gcd(a, b) * b
 
 fun digits(number: Long) : List<Int> {

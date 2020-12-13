@@ -1,5 +1,6 @@
 package aoc2020
 
+import common.crt
 import common.readLines
 
 object Day13 {
@@ -25,18 +26,9 @@ object Day13 {
     }
 
     fun part2(input: Pair<Int, List<Pair<Int, Int>>>): Long {
-        // chinese remainder theorem then plus/minus product until first answer
-
-        input.second
-            .map { (index, value) -> "x = ${value - index} mod $value " }
-            .forEach { println(it) }
-
-        return 0
-    }
-
-    fun solvePart2(input: Pair<Int, List<Pair<Int, Int>>>, solvedCrt: Long): Long {
-        val n = input.second.map { it.second }.map { it.toLong() }.reduce { a, b -> a * b}
-        return (solvedCrt % n + n) % n
+        return input.second.map { (index, n_i) -> (n_i - index) to n_i }
+            .map { (a_i, n_i) -> a_i.toLong() to n_i.toLong() }
+            .let { crt(it) }
     }
 }
 
@@ -48,5 +40,4 @@ fun main() {
 
     println(Day13.part1(Day13.input))
     println(Day13.part2(Day13.input))
-    println(Day13.solvePart2(Day13.input, 267666633441334559))
 }
