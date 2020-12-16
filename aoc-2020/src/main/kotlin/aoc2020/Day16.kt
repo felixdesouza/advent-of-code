@@ -1,5 +1,6 @@
 package aoc2020
 
+import com.google.common.collect.Queues
 import common.openFile
 
 object Day16 {
@@ -52,8 +53,52 @@ object Day16 {
     fun part1(ticket: Ticket): Long {
         return ticket.nearbyTickets.flatten().filter { value -> ticket.defs.none { it.contains(value) } }.map { it.toLong() }.sum()
     }
+
+    fun part2(ticket: Ticket): Long {
+        val newNearbyTickets = ticket.nearbyTickets.filter { ticketValues -> ticketValues.all { value -> ticket.defs.any { it.contains(value) } } }
+
+        val newTicket = ticket.copy(nearbyTickets = newNearbyTickets)
+
+        val numFields = newTicket.defs.size
+
+        val allFields = (0 until numFields).toSet()
+
+        val candidatesByDef = newTicket.defs.associateWith { def ->
+            val invalidLocations = newNearbyTickets
+                .map { nearbyTicket ->
+                    nearbyTicket.withIndex().filterNot { (_, value) -> def.contains(value) }.map { it.index }
+                }
+                .flatten().toSet()
+
+            allFields.minus(invalidLocations)
+        }.onEach { println(it) }
+
+        val defsToVisit = Queues.newArrayDeque<Def>(newTicket.defs)
+        val assignedFields = mutableMapOf<Int, Def>()
+
+        while (!defsToVisit.isEmpty()) {
+            val def = defsToVisit.pollFirst()
+
+            val remainder = candidatesByDef[def]!!.minus(assignedFields.keys)
+            if (remainder.size == 1) {
+                assignedFields[remainder.first()] = def
+            } else {
+                defsToVisit.addLast(def)
+            }
+        }
+
+        val fieldsByDef = assignedFields.map { (k, v) -> v to k }.toMap()
+
+        return ticket.defs.filter { it.field.startsWith("departure") }
+            .map { fieldsByDef[it]!! }
+            .map { ticket.myTicket[it] }
+            .map { it.toLong() }
+            .reduce { acc, i -> acc * i }
+    }
 }
 
 fun main() {
     println(Day16.part1(Day16.input))
+
+    println(Day16.part2(Day16.input))
 }
