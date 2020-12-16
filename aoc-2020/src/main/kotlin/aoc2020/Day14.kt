@@ -66,11 +66,9 @@ object Day14 {
                             map[finalMarkedAddress] = value
                         }
                     }
-//                    println(Integer.toBinaryString(maskedValue))
                 }
             }
         }
-
         return map.values.sum()
     }
 }
