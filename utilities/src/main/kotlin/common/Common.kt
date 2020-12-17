@@ -236,6 +236,41 @@ data class Coordinate3d(val x: Int, val y: Int, val z: Int) {
     }
 }
 
+data class Coordinate4d(val x: Int, val y: Int, val z: Int, val w: Int) {
+    companion object {
+        val origin = Coordinate4d(0, 0, 0, 0)
+
+        fun boundingBox(coordinates: Set<Coordinate4d>): Pair<Coordinate4d, Coordinate4d> {
+            val sortedByX = coordinates.sortedBy { it.x }
+            val sortedByY = coordinates.sortedBy { it.y }
+            val sortedByZ = coordinates.sortedBy { it.z }
+            val sortedByW = coordinates.sortedBy { it.w}
+
+            return Coordinate4d(sortedByX.first().x, sortedByY.first().y, sortedByZ.first().z, sortedByW.first().w) to Coordinate4d(
+                    sortedByX.last().x,
+                    sortedByY.last().y,
+                    sortedByZ.last().z,
+                    sortedByW.last().w
+            )
+        }
+    }
+
+    fun neighbours(): List<Coordinate4d> {
+        val coords = mutableListOf<Coordinate4d>()
+        for (newW in (w-1..w+1)) {
+            for (newZ in (z - 1..z + 1)) {
+                for (newY in (y - 1..y + 1)) {
+                    for (newX in (x - 1..x + 1)) {
+                        coords.add(Coordinate4d(newX, newY, newZ, newW))
+                    }
+                }
+            }
+        }
+
+        return coords.minus(this)
+    }
+}
+
 //data class Cube<T>(val grid: Map<Coordinate3d, T>) {
 //
 //    companion object {
