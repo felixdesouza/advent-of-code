@@ -204,3 +204,75 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
         return grid[key]
     }
 }
+
+data class Coordinate3d(val x: Int, val y: Int, val z: Int) {
+    companion object {
+        val origin = Coordinate3d(0, 0, 0)
+
+        fun boundingBox(coordinates: Set<Coordinate3d>): Pair<Coordinate3d, Coordinate3d> {
+            val sortedByX = coordinates.sortedBy { it.x }
+            val sortedByY = coordinates.sortedBy { it.y }
+            val sortedByZ = coordinates.sortedBy { it.z }
+
+            return Coordinate3d(sortedByX.first().x, sortedByY.first().y, sortedByZ.first().z) to Coordinate3d(
+                    sortedByX.last().x,
+                    sortedByY.last().y,
+                    sortedByZ.last().z
+            )
+        }
+    }
+
+    fun neighbours(): List<Coordinate3d> {
+        val coords = mutableListOf<Coordinate3d>()
+        for (newZ in (z-1..z+1)) {
+            for (newY in (y-1..y+1)) {
+                for (newX in (x-1..x+1)) {
+                    coords.add(Coordinate3d(newX, newY, newZ))
+                }
+            }
+        }
+
+        return coords.minus(this)
+    }
+}
+
+//data class Cube<T>(val grid: Map<Coordinate3d, T>) {
+//
+//    companion object {
+//        fun parse(input: String): Cube<Char> {
+//            return parse(input) {it}
+//        }
+//
+//        fun <T> parseFile(fileName: String, f: (char: Char) -> T): Cube<T> {
+//            return parse(openFile(fileName), f)
+//        }
+//
+//        fun <T> parse(input: String, f: (char: Char) -> T): Cube<T> {
+//            val lines = input.lines()
+//            val numRows = lines.size
+//            val numColumns = lines.first().length
+//            val grid = lines.withIndex()
+//                    .map { (row, text) -> text.map(f).withIndex().map { (col, value) -> Coordinate(col, row) to value } }
+//                    .flatten()
+//                    .toMap()
+//            return Cube(grid)
+//        }
+//    }
+//
+////    fun print() {
+////        for (y in (0 until numRows)) {
+////            for (x in (0 until numColumns)) {
+////                print(grid[Coordinate(x, y)])
+////            }
+////            println()
+////        }
+////    }
+//
+//    fun <R> mapCube(f: (Coordinate, T) -> R): Grid<R> {
+//        return Grid(grid.mapValues { (coordinate, value) -> f(coordinate, value) }, numRows, numColumns)
+//    }
+//
+//    operator fun get(key: Coordinate): T? {
+//        return grid[key]
+//    }
+//}
