@@ -178,7 +178,7 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
         fun <T> parse(input: String, f: (char: Char) -> T): Grid<T> {
             val lines = input.lines()
             val numRows = lines.size
-            val numColumns = lines.first().length
+            val numColumns = lines.map { it.length }.max()!!
             val grid = lines.withIndex()
                 .map { (row, text) -> text.map(f).withIndex().map { (col, value) -> Coordinate(col, row) to value } }
                 .flatten()
