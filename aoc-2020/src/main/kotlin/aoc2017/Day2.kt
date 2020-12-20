@@ -11,8 +11,26 @@ object Day2 {
     fun part1(input: List<List<Int>>): Int {
         return input.sumBy { line -> line.max()!! - line.min()!! }
     }
+
+    fun check(line: List<Int>): Int {
+        val sorted = line.sorted()
+        return sorted.dropLast(1).asSequence().withIndex().mapNotNull { (index, source) ->
+            val others = sorted.subList(index+1, sorted.size)
+            others.firstOrNull { it % source == 0 }?.let { it / source }
+        }.first()
+    }
+
+    fun part2(input: List<List<Int>>): Int {
+        return input.sumBy { check(it) }
+    }
 }
 
 fun main() {
     println(Day2.part1(Day2.input))
+    val testInput = """
+        5 9 2 8
+        9 4 7 3
+        3 8 6 5
+    """.trimIndent().lines().let { Day2.parseInput(it) }
+    println(Day2.part2(Day2.input))
 }
