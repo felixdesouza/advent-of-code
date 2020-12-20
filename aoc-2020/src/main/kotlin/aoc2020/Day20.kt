@@ -1,5 +1,6 @@
 package aoc2020
 
+import com.google.common.collect.ImmutableMap
 import common.Coordinate
 import common.Grid
 import common.openFile
@@ -8,24 +9,25 @@ object Day20 {
 
     val input = openFile("/aoc2020/day20.txt").let { parseInput(it) }
 
-    data class Tile(val id: Int, val n: Int, val north: Int, val east: Int, val south: Int, val west: Int) {
-        fun flips(): Set<Tile> {
-            return setOf(copy(north = north.reverseInt(), east = west, west = east, south = south.reverseInt()),
-                    copy(north = south, south = north, west = west.reverseInt(), east = east.reverseInt()),
-                    copy(east = north.reverseInt(), north = east.reverseInt(), south = west.reverseInt(), west = south.reverseInt()),
-                    copy(west = north, north = west, east = south, south = east))
-        }
+    val seaMonster = """
+                          # 
+        #    ##    ##    ###
+         #  #  #  #  #  #   
+    """.trimIndent().let { Grid.parse(it) { it == '#' } }.grid.filter { (_, present) -> present }.keys
 
-        fun rotate(): Tile {
-            return copy(east = north, south = east.reverseInt(), west = south, north = west.reverseInt())
-        }
+    enum class Orientation {
+        Original, Rotate90, Rotate180, Rotate270, FlipX, FlipY, Transpose, TransposeRotate
+    }
 
-        fun Int.reverseInt(): Int {
-            return Integer.toBinaryString(this).padStart(n, '0').reversed().toInt(2)
-        }
+    data class Tile(val id: Int, val orientation: Orientation, private val grid: Grid<Int>) {
+
+        val north: Int by lazy { border(Direction.N) }
+        val east: Int by lazy { border(Direction.E) }
+        val south: Int by lazy { border(Direction.S) }
+        val west: Int by lazy { border(Direction.W) }
 
         fun orientations(): Set<Tile> {
-            return generateSequence(this) { it.rotate() }.take(4).flatMap { (it.flips() + it).asSequence() }.toSet()
+            return Orientation.values().map { this.copy(orientation = it) }.toSet()
         }
 
         fun fitsWith(tile: Tile): Set<Direction> {
@@ -40,6 +42,52 @@ object Day20 {
             }
 
             return tile.orientations().mapNotNull { matchingSide(it) }.toSet()
+        }
+
+        fun applyOrientation(coordinate: Coordinate): Coordinate {
+            val (x, y) = coordinate
+
+            fun Coordinate.rotate90(): Coordinate {
+                return Coordinate(this.y, grid.numRows - this.x - 1)
+            }
+            return when (orientation) {
+                Orientation.Original -> coordinate
+                Orientation.Rotate90 -> coordinate.rotate90()
+                Orientation.Rotate180 -> coordinate.rotate90().rotate90()
+                Orientation.Rotate270 -> coordinate.rotate90().rotate90().rotate90()
+                Orientation.FlipX -> Coordinate(grid.numColumns - x - 1, y)
+                Orientation.FlipY -> Coordinate(x, grid.numRows - y - 1)
+                Orientation.Transpose -> Coordinate(y, x)
+                Orientation.TransposeRotate -> Coordinate(y, x).rotate90().rotate90()
+            }
+        }
+
+        fun border(direction: Direction): Int {
+            return when (direction) {
+                Direction.N -> (0 until grid.numColumns).map { grid[applyOrientation(Coordinate(it, 0))] }.joinToString("").toInt(2)
+                Direction.S -> (0 until grid.numColumns).map { grid[applyOrientation(Coordinate(it, grid.numRows - 1))] }.joinToString("").toInt(2)
+                Direction.E -> (0 until grid.numRows).map { grid[applyOrientation(Coordinate(grid.numColumns - 1, it))] }.joinToString("").toInt(2)
+                Direction.W -> (0 until grid.numColumns).map { grid[applyOrientation(Coordinate(0, it))] }.joinToString("").toInt(2)
+
+            }
+        }
+
+        fun grid(): Grid<Int> {
+            return grid.mapGrid { coordinate, _ -> grid[applyOrientation(coordinate)]!! }
+        }
+
+        fun print() {
+            grid().mapGrid { _, i -> if (i == 1) "#" else "." }.print()
+        }
+
+        fun removeBorder(): Tile {
+            val newGrid = (1 until grid.numRows - 1).flatMap { y ->
+                (1 until grid.numColumns - 1).map { x ->
+                    Coordinate(x - 1, y - 1) to grid[Coordinate(x, y)]!!
+                }
+            }.toMap().let { Grid(it, grid.numRows - 2, grid.numColumns - 2) }
+
+            return copy(grid = newGrid)
         }
     }
 
@@ -62,24 +110,107 @@ object Day20 {
             }
         }
 
-        val north = (0 until grid.numColumns).map { grid[Coordinate(it, 0)] }.joinToString("").toInt(2)
-        val east = (0 until grid.numRows).map { grid[Coordinate(grid.numColumns - 1, it)] }.joinToString("").toInt(2)
-        val south = (0 until grid.numColumns).map { grid[Coordinate(it, grid.numRows - 1)] }.joinToString("").toInt(2)
-        val west = (0 until grid.numColumns).map { grid[Coordinate(0, it)] }.joinToString("").toInt(2)
-
-        return Tile(id, grid.numRows, north, east, south, west)
+        return Tile(id, Orientation.Original, grid)
     }
 
     fun part1(input: Set<Tile>): Long {
-        val validTiles = input.filter { tile ->
+        val validTiles = corners(input)
+
+        return validTiles.keys.onEach { println(it) }.map { it.id.toLong() }.reduce { curr, next -> curr * next }
+    }
+
+    private fun corners(input: Set<Tile>): Map<Tile, Set<Direction>> {
+        return input.mapNotNull { tile ->
             val otherTiles = input - tile
 
-            tile.orientations().any { oriented ->
-                otherTiles.flatMap { otherTile -> oriented.fitsWith(otherTile) }.size in (1..2)
+            tile.orientations()
+                    .associateWith { oriented ->
+                        otherTiles.flatMap { otherTile -> oriented.fitsWith(otherTile) }.toSet()
+                    }
+                    .filterValues { it.size == 2 }
+                    .entries.firstOrNull()
+        }.let { ImmutableMap.copyOf(it) }
+    }
+
+    fun part2(input: Set<Tile>): Long {
+        println("finding corners")
+        val corners = corners(input)
+
+        println("assembling")
+        val northWest = corners.entries.first { it.value == setOf(Direction.E, Direction.S) }.key
+        val otherCorners = (corners - northWest).keys
+
+        val others = input.filter { it.id != northWest.id }
+        val westConnections = others.flatMap { it.orientations() }.groupBy { it.west }
+
+        var current = northWest
+        val eastMap = mutableMapOf<Tile, Tile>()
+
+        val otherCornerOrientations = otherCorners.flatMap { it.orientations() }
+        while (current !in otherCornerOrientations) {
+            val eastConnection = westConnections[current.east]?.filter { it.id !in eastMap.keys.map { it.id }.toSet() && it.id != current.id }
+            if (eastConnection == null || eastConnection.size != 1) throw AssertionError("unexpected $eastConnection")
+
+            eastMap[current] = eastConnection.first()
+            current = eastConnection.first()
+        }
+
+        val firstRow = generateSequence(northWest) { eastMap[it] }.toList()
+        val northConnections = others.flatMap { it.orientations() }.groupBy { it.north }
+
+        val southMap = mutableMapOf<Tile, Tile>()
+        fun goSouth(tile: Tile) {
+            var current = tile
+            while (true) {
+                val southConnection = northConnections[current.south]?.filter { it.id !in southMap.keys.map { it.id }.toSet() && it.id != current.id }
+                if (southConnection == null || southConnection.isEmpty()) {
+                    break
+                }
+                if (southConnection.size != 1) throw AssertionError("unexpected $southConnection")
+
+                southMap[current] = southConnection.first()
+                current = southConnection.first()
             }
         }
 
-        return validTiles.onEach { println(it) }.map { it.id.toLong() }.reduce { curr, next -> curr * next }
+        val assembled = firstRow.asSequence()
+                .onEach { goSouth(it) }
+                .map {
+                    generateSequence(it) { southMap[it] }
+                            .onEach { println(it.id) }.toList()
+                }
+                .onEach { println() }
+                .map { it.map { it.removeBorder() } }
+                .withIndex()
+                .map { (x, rows) ->
+                    rows.withIndex().map { (y, cell) ->
+                        val grid = cell.grid()
+                        val offset = Coordinate(x * grid.numRows, y * grid.numColumns)
+                        grid.grid.mapKeys { (coord, _) -> coord + offset }
+                    }.reduce { acc, map -> acc + map }
+                }.reduce { acc, map -> acc + map }
+                .let { Tile(
+                        0,
+                        Orientation.Original,
+                        Grid(it, it.keys.map { it.y }.max()!! + 1, it.keys.map { it.x }.max()!! + 1)) }
+
+        val seaMonsterBoundingBox = Coordinate.boundingBox(seaMonster)
+        val correctOrientations = assembled.orientations()
+                .associateWith { tile ->
+                    val grid = tile.grid()
+                    val gridKeys = grid.grid.keys
+                    val keysToCheck = gridKeys.filter { seaMonsterBoundingBox.second + it in gridKeys }
+                    keysToCheck.filter { source -> seaMonster.map { it + source }.all { grid[it]?.equals(1) ?: false } }
+                    .associateWith { source -> seaMonster.map { it + source } }
+                }
+                .filterValues { it.isNotEmpty() }
+
+        val (tile, coords) = correctOrientations.entries.first()
+        tile.print()
+
+        val gridCoords = tile.grid().grid.filter { (_, value) -> value == 1 }.keys
+        val remaining = gridCoords - coords.values.flatten()
+        return remaining.size.toLong()
     }
 }
 
@@ -194,5 +325,5 @@ fun main() {
         ..#.###...
     """.trimIndent().let { Day20.parseInput(it) }
 
-    println(Day20.part1(Day20.input))
+    println(Day20.part2(Day20.input))
 }
