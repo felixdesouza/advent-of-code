@@ -29,15 +29,6 @@ object Day19 {
         }
 
         return Input(resolved, unresolved, thingsToCheck)
-
-//        val graph = GraphBuilder.directed().build<Int>()
-//        unresolved.forEach { (rule, definition) ->
-//            definition.split(' ', '|').map { it.toInt() }.forEach { graph.putEdge(it, rule) }
-//        }
-//
-//        val S = graph.nodes().filter { graph.predecessors(it).isEmpty() }
-
-
     }
 
     fun resolve(n: Int, resolved: Map<Int, String>, unresolved: Map<Int, String>): Pair<Map<Int, String>, Map<Int, String>> {
