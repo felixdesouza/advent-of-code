@@ -12,38 +12,35 @@ object Day6 {
         val (maxIndex, maxValue) = this.withIndex().maxBy { it.value }!!
         println("max = ${maxIndex}, $maxValue")
         val minJump = maxValue / n
-//        println("minJump = ${minJump}")
         return this.withIndex().map { (index, value) ->
             val offset = (((index - maxIndex - 1) % n) + n) % n
             val extra = if (offset < maxValue % n) 1 else 0
             val currentCompensate = if (index == maxIndex) -maxValue else 0
-//            println("---")
-//            println("index = ${index}")
-//            println("value = ${value}")
-//            println("offset = ${offset}")
-//            println("extra = ${extra}")
-//            println("currentCompensate = ${currentCompensate}")
             value + minJump + extra + currentCompensate
         }
     }
 
-    fun part1(list: List<Int>): Int {
-
-        tailrec fun iterate(seen: Set<List<Int>>, steps: Int, current: List<Int>): Int {
-            val next = current.tick()
-            return if (next in seen) {
-                steps + 1
-            } else {
-                iterate(seen.plusElement(next), steps + 1, next)
-            }
+    private tailrec fun iterate(seen: Set<List<Int>>, steps: Int, current: List<Int>): Pair<Int, List<Int>> {
+        val next = current.tick()
+        return if (next in seen) {
+            steps + 1 to next
+        } else {
+            iterate(seen.plusElement(next), steps + 1, next)
         }
+    }
 
-        return iterate(emptySet(), 0, list)
+    fun part1(list: List<Int>): Int {
+        return iterate(emptySet(), 0, list).first
+    }
 
+    fun part2(list: List<Int>): Int {
+        val (_, loopElement) =  iterate(emptySet(), 0, list)
+        return iterate(emptySet(), 0, loopElement).first - 1
     }
 }
 
 fun main() {
     println(Day6.part1(Day6.input))
+    println(Day6.part2(Day6.input))
 }
 
