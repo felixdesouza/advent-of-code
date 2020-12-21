@@ -1,27 +1,40 @@
 package aoc2017
 
+import common.Coordinate
 import kotlin.math.abs
 
 object Day3 {
 
     fun part1(n: Int): Int {
-        val sqrt = Math.sqrt(n.toDouble())
+        val (x, y)  = coordinate(n)
+        return abs(x) + abs(y)
+    }
+
+    fun coordinate(i: Int): Coordinate {
+        val sqrt = Math.sqrt(i.toDouble())
         val lower = Math.floor(sqrt).toInt()
         val upper = Math.ceil(sqrt).toInt()
 
-        if (lower == upper) TODO("handle later")
+        if (lower == upper && lower % 2 == 1) return Coordinate(lower / 2, lower / 2)
 
         val lowerBound = if (lower % 2 == 0) lower - 1 else lower
         val upperBound = if (upper % 2 == 0) upper + 1 else upper
 
-        val sizeOfQuadrant = (upperBound * upperBound - lowerBound * lowerBound) / 4
-        val normalised = n - (lowerBound * lowerBound + 1)
-
         val level = upperBound / 2
+        val sizeOfQuadrant = (upperBound * upperBound - lowerBound * lowerBound) / 4
+        val normalised = i - (lowerBound * lowerBound + 1)
+        val position = normalised % sizeOfQuadrant
+        val quadrant = normalised / sizeOfQuadrant
 
-        val position = abs((normalised % sizeOfQuadrant) - ((sizeOfQuadrant / 2) - 1))
+        val upperBoundCoordinate = Coordinate(level, level)
 
-        return level + position
+        return when (quadrant) {
+            0 -> upperBoundCoordinate + Coordinate(0, -(1 + position))
+            1 -> upperBoundCoordinate + Coordinate(-(1 + position), -sizeOfQuadrant)
+            2 -> upperBoundCoordinate + Coordinate(-sizeOfQuadrant, position + 1 - sizeOfQuadrant)
+            3 -> upperBoundCoordinate + Coordinate(-sizeOfQuadrant + 1 + position, 0)
+            else -> throw AssertionError("not expected $quadrant")
+        }
     }
 }
 
