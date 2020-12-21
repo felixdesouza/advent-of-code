@@ -7,23 +7,34 @@ object Day5 {
     val input = readLines("/aoc2017/day5.txt").map { it.toInt() }
 
     fun part1(list: List<Int>): Int {
+        return jump(list)
+    }
+
+    fun part2(list: List<Int>): Int {
+        return jump(list, true)
+    }
+
+    private fun jump(list: List<Int>, strange: Boolean = false): Int {
         val array = list.toIntArray()
 
-        tailrec fun jump(steps: Int, offset: Int): Int {
-            if (offset >= list.size) {
-                return steps
+        println("list = [${list}], strange = [${strange}]")
+
+        tailrec fun jumpInner(steps: Int, offset: Int): Int {
+            return if (offset >= list.size) {
+                steps
             } else {
                 val newJump = offset + array[offset]
-                array[offset] += 1
-                return jump(steps + 1, newJump)
+                if (strange && array[offset] >= 3) array[offset] -= 1 else array[offset] += 1
+                jumpInner(steps + 1, newJump)
             }
         }
 
-        return jump(0, 0)
+        return jumpInner(0, 0)
     }
 
 }
 
 fun main() {
-    println(Day5.part1(Day5.input))
+    val testInput = listOf(0, 3, 0, 1, -3)
+    println(Day5.part2(Day5.input))
 }
