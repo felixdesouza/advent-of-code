@@ -46,30 +46,40 @@ object Day21 {
     }
 
     fun part1(lines: List<Line>): Long {
-        val linesByAllergens = lines.flatMap { line -> line.allergens.map { allergen -> allergen to line } }
-                .groupBy({ it.first }, { it.second })
-
-        val reduced = linesByAllergens
-                .mapValues { it.value.map { it.ingredients }.reduce { acc, next -> Sets.intersection(acc, next) } }
-                .entries.sortedBy { it.value.size }
-                .map { (a,b) -> a to b }
-                .toMap()
-
-        val ingredientsWithAllergies = generateSequence(Assignments(emptyMap(), reduced)) { assignTick(it) }
-                .windowed(2)
-                .first { (a, b) -> a == b }
-                .first()
-                .assignments
-                .map { (allergen, ingredient) -> ingredient to allergen }
-                .toMap()
+        val ingredientsWithAllergies = calculateAllergens(lines)
 
         val counts = lines.flatMap { it.ingredients.filterNot { it in ingredientsWithAllergies } }
                 .groupingBy({it}).eachCount()
         return counts.values.map { it.toLong() }.sum()
     }
 
+    private fun calculateAllergens(lines: List<Line>): Map<String, String> {
+        val linesByAllergens = lines.flatMap { line -> line.allergens.map { allergen -> allergen to line } }
+                .groupBy({ it.first }, { it.second })
+
+        val reduced = linesByAllergens
+                .mapValues { it.value.map { it.ingredients }.reduce { acc, next -> Sets.intersection(acc, next) } }
+                .entries.sortedBy { it.value.size }
+                .map { (a, b) -> a to b }
+                .toMap()
+
+        return generateSequence(Assignments(emptyMap(), reduced)) { assignTick(it) }
+                .windowed(2)
+                .first { (a, b) -> a == b }
+                .first()
+                .assignments
+                .map { (allergen, ingredient) -> ingredient to allergen }
+                .toMap()
+    }
+
+    fun part2(lines: List<Line>): String {
+        val ingredientsWithAllergies = calculateAllergens(lines)
+        return ingredientsWithAllergies.entries.sortedBy { it.value }.map { it.key }.joinToString(",")
+    }
+
 }
 
 fun main() {
-    println(Day21.part1(Day21.input))
+    println(Day21.part1(Day21.testInput))
+    println(Day21.part2(Day21.input))
 }
