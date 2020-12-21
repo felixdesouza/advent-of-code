@@ -36,8 +36,21 @@ object Day3 {
             else -> throw AssertionError("not expected $quadrant")
         }
     }
+
+    fun part2(upperBound: Int): Long {
+        generateSequence(2) { it + 1 }
+                .fold(mapOf(Coordinate.origin to 1L)) { grid, next ->
+                    val coordinate = coordinate(next)
+                    val value = coordinate.allNeighbours().map { grid.getOrDefault(it, 0L) }.sum()
+                    if (value > upperBound) return value
+                    grid + (coordinate to value)
+                }
+
+        throw AssertionError("not found")
+    }
 }
 
 fun main() {
     println(Day3.part1(312051))
+    println(Day3.part2(312051))
 }
