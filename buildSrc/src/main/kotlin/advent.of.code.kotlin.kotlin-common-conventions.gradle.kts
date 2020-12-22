@@ -10,6 +10,7 @@ plugins {
 repositories {
     // Use JCenter for resolving dependencies.
     jcenter()
+    maven { setUrl("https://dl.bintray.com/hotkeytlt/maven") }
 }
 
 dependencies {
