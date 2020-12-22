@@ -7,6 +7,7 @@ import com.github.h0tk3y.betterParse.lexer.literalToken
 import com.github.h0tk3y.betterParse.lexer.regexToken
 import com.github.h0tk3y.betterParse.parser.Parser
 import common.readLines
+import kotlin.math.max
 
 object Day8 {
 
@@ -33,8 +34,7 @@ object Day8 {
     }
 
     data class Change(val register: String, val modifier: Modifier, val change: Int) {
-        operator fun invoke(registers: Map<String, Int>) =
-                registers + (register to modifier(registers.getOrDefault(register, 0), change))
+        operator fun invoke(registers: Map<String, Int>) = modifier(registers.getOrDefault(register, 0), change)
     }
 
     data class Instruction(val change: Change, val condition: Condition)
@@ -73,17 +73,21 @@ object Day8 {
 
     val input = readLines("/aoc2017/day8.txt").map { parser.parseToEnd(it) }
 
-    fun part1(instructions: List<Instruction>): Int {
-        val registers = instructions.fold(emptyMap<String, Int>()) { registers, nextInstruction ->
+    fun part1(instructions: List<Instruction>): Int = run(instructions).first.values.max()!!
+
+    fun part2(instructions: List<Instruction>): Int = run(instructions).second
+
+    private fun run(instructions: List<Instruction>): Pair<Map<String, Int>, Int> {
+        return instructions.fold(emptyMap<String, Int>() to Integer.MIN_VALUE) { state, nextInstruction ->
+            val (registers, maxSeen) = state
             val (change, condition) = nextInstruction
             if (condition.apply(registers)) {
-                registers + change(registers)
+                val newValue = change(registers)
+                (registers + (change.register to newValue)) to max(maxSeen, newValue)
             } else {
-                registers
+                registers to maxSeen
             }
         }
-
-        return registers.values.max()!!
     }
 }
 
@@ -95,5 +99,5 @@ fun main() {
         c inc -20 if c == 10
     """.trimIndent().lines().map { Day8.parser.parseToEnd(it) }
 
-    Day8.part1(Day8.input).let { println(it) }
+    Day8.part2(Day8.input).let { println(it) }
 }
