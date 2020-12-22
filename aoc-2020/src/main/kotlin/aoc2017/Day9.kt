@@ -15,9 +15,7 @@ object Day9 {
 
     fun part1(input: String): Int {
         val pure = filterGarbage(input)
-        println(pure)
         val (score, _) = pure.fold(0 to 0) { (score, level), next ->
-            println("$score $level | $next")
             when (next) {
                 '{' ->  score to level + 1
                 '}' -> (score + level) to level - 1
@@ -27,8 +25,18 @@ object Day9 {
 
         return score
     }
+
+    fun part2(input: String): Int {
+        val withNoCancellations = input.replace("!.".toRegex(), "")
+        val garbageRegex = "<([^>]*)>".toRegex()
+        return garbageRegex.findAll(withNoCancellations)
+                .mapNotNull { it.groups.get(1) }
+                .sumBy { it.value.length }
+
+    }
 }
 
 fun main() {
     Day9.part1(Day9.input).let { println(it) }
+    Day9.part2(Day9.input).let { println(it) }
 }
