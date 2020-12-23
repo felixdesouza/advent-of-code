@@ -1,0 +1,45 @@
+package aoc2017
+
+import common.openFile
+import java.lang.Integer.min
+
+object Day11 {
+
+    val input = openFile("/aoc2017/day11.txt").parseInput()
+
+    fun String.parseInput() = split(",")
+
+    fun Map<String, Int>.iterate() = shortcut("nw", "ne", "n")
+            .shortcut("se", "sw", "s")
+            .opposite("ne", "sw")
+            .opposite("nw", "se")
+            .opposite("n", "s")
+            .shortcut("ne", "s", "se")
+            .shortcut("nw", "s", "sw")
+            .shortcut("se", "n", "ne")
+            .shortcut("sw", "n", "nw")
+
+    fun part1(input: List<String>): Int {
+        val counts = input.groupingBy { it }.eachCount()
+        return generateSequence(counts) { counts.iterate() }.windowed(2).first { (a, b) -> a == b }.first().values.sum()
+    }
+
+    private fun Map<String, Int>.shortcut(direction1: String, direction2: String, resolved: String): Map<String, Int> {
+        val resolvedAdditions = min(this[direction1] ?: 0, this[direction2] ?: 0)
+        println("direction1 = [${direction1}], direction2 = [${direction2}], resolved = [${resolved}], resolvedAdditions = $resolvedAdditions")
+        return listOf(direction1, direction2).fold(this) { state, next ->
+            state + (next to (state[next] ?: 0) - resolvedAdditions)
+        }.let { it + (resolved to (it[resolved] ?: 0) + resolvedAdditions) }
+    }
+
+    private fun Map<String, Int>.opposite(direction1: String, direction2: String): Map<String, Int> {
+        val changes = min(this[direction1] ?: 0, this[direction2] ?: 0)
+        return listOf(direction1, direction2).fold(this) { state, next ->
+            state + (next to (state[next] ?: 0) - changes)
+        }
+    }
+}
+
+fun main() {
+    Day11.part1(Day11.input).also { println(it) }
+}
