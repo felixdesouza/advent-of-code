@@ -2,7 +2,10 @@ package aoc2020
 
 import aoc2020.Day23.part1
 import aoc2020.Day23.part2
+import kotlin.math.abs
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 object Day23 {
 
     val input = 362981754
@@ -12,33 +15,29 @@ object Day23 {
         return subList(0, i) to subList(i, size)
     }
 
-    data class Node(val value: Int, val prev: Int, val next: Int)
+    data class Circular(val buffer: IntArray, var head: Int) {
+        val size = buffer.size - 1
 
-    data class Circular(val buffer: MutableMap<Int, Node>, val head: Int) {
-        val size = buffer.size
         companion object {
-            fun fromList(list: List<Int>): Circular {
-                val last = list.last()
+            @ExperimentalTime
+            fun fromInputList(list: List<Int>, part2: Boolean): Circular {
+                val last = if (part2) 1_000_000 else list.last()
                 val first = list.first()
-                val nodes = mutableMapOf<Int, Node>()
-                println("creating")
-                (listOf(last) + list + first).windowed(3)
-                        .forEach { (prev, curr, next) ->
-                            val prevNode = nodes[prev]?.copy(next = curr) ?: Node(prev, -1, curr)
-                            val nextNode = nodes[next]?.copy(prev = curr) ?: Node(next, curr, -1)
-                            val currNode = Node(curr, prev, next)
-                            nodes[prev] = prevNode
-                            nodes[next] = nextNode
-                            nodes[curr] = currNode
-                        }
-                println("finished creating")
+                val nodes = IntArray(if (part2) last + 1 else list.size + 1) { it + 1 }
+
+                nodes[last] = first
+                nodes[0] = 0
+                if (part2) nodes[list.last()] = 10
+                list.windowed(2).forEach { (curr, next) -> nodes[curr] = next }
+
                 return Circular(nodes, first)
             }
         }
 
         fun first() = head
+
         fun cycle(i: Int): Circular {
-            val newHead = getAtIndex(i).value
+            val newHead = getAtIndex(i)
             return copy(head = newHead)
         }
 
@@ -46,40 +45,42 @@ object Day23 {
             return copy(head = head)
         }
 
-        fun getAtIndex(i: Int): Node {
-            return generateSequence(buffer[head]) { buffer[it.next] }.drop(i).first()
+        fun getAtIndex(i: Int): Int {
+            val norm = i % size
+            val forward = ((norm + size) % size)
+
+            var curr = head
+            for (unused in (0 until abs(forward))) {
+                curr = buffer[curr]
+            }
+
+            return curr
         }
 
         fun subList(n: Int): List<Int> {
-            return generateSequence(head) { buffer[it]!!.next }.take(n).toList()
-        }
-
-        fun max(cutoff: Int): Int {
-            return generateSequence(head) { buffer[it]!!.next }.take(cutoff).max()!!
+            return generateSequence(head) { buffer[it] }.take(n).toList()
         }
 
         fun toList(): List<Int> {
             return subList(size)
         }
 
-        fun move(): Circular {
-            val current = first()
-            val cycle = cycle(1)
-            val toTake = cycle.subList(3)
-            val destinationCup = (current - 1 downTo 1).firstOrNull { it !in toTake } ?: cycle.cycle(3).max(size - 3)
+        fun move() {
+            val current = head
 
-            val (toTakeFirst, _, toTakeLast) = toTake.map { buffer[it]!! }
-            val mutable = buffer
-            mutable[toTakeFirst.prev] = buffer[toTakeFirst.prev]!!.copy(next = toTakeLast.next)
-            mutable[toTakeLast.next] = buffer[toTakeLast.next]!!.copy(prev = toTakeFirst.prev)
+            val toTakeFirst = buffer[current]
+            val toTakeSecond = buffer[toTakeFirst]
+            val toTakeLast = buffer[toTakeSecond]
+            val next = buffer[toTakeLast]
 
-            val destinationCupNode = mutable[destinationCup]!!
-            val newDestinationCup = destinationCupNode.copy(next = toTakeFirst.value)
-            val newDestinationCupNext = mutable[destinationCupNode.next]!!.copy(prev = toTakeLast.value)
-            val newToTakeFirst = toTakeFirst.copy(prev = destinationCup)
-            val newToTakeLast = toTakeLast.copy(next = destinationCupNode.next)
-            sequenceOf(newDestinationCupNext, newToTakeFirst, newToTakeLast, newDestinationCup).forEach { mutable[it.value] = it }
-            return copy(head = current).cycle(1)
+            val destinationCup = (current - 1 downTo 1).firstOrNull { it != toTakeFirst && it != toTakeSecond && it != toTakeLast }
+                    ?: (size downTo 1).first { it != toTakeFirst && it != toTakeSecond && it != toTakeLast }
+
+            buffer[current] = buffer[toTakeLast]
+            buffer[toTakeLast] = buffer[destinationCup]
+            buffer[destinationCup] = toTakeFirst
+
+            head = next
         }
     }
 
@@ -89,47 +90,40 @@ object Day23 {
         return (head + tail)
     }
 
-    fun List<Int>.move(): List<Int> {
-        val current = first()
-        val cycle = cycle(1)
-        val (toTake, remainder) = cycle.splitAt(3)
-
-        // 3: if 2, 1 in toTake, then do max
-        // 26: if 25
-        val destinationCup = (current - 1 downTo 1).firstOrNull { it !in toTake } ?: remainder.max()
-        val (destinationCupList, rest) = remainder.cycle(remainder.indexOf(destinationCup)).splitAt(1)
-        val assembled = destinationCupList + toTake + rest
-        val next = assembled.indexOf(current)
-        return assembled.cycle(next + 1)
-    }
-
     fun Int.digits() = toString().map { it - '0' }
     fun List<Int>.asInt() = joinToString("").toInt()
 
     fun Int.part1(n: Int): Int {
-        val circular = digits().let { Circular.fromList(it) }
-        return generateSequence(circular) { it.move() }.drop(n).first().let {
+        val circular = digits().let { Circular.fromInputList(it, false) }
+        return generateSequence(circular) { circular.move(); circular }.drop(n).first().let {
             val digits = it.toList()
             digits.cycle(digits.indexOf(1)).drop(1).asInt()
         }
     }
 
     fun Int.part2(n: Int = 10_000_000): Long {
-        val array = digits() + (10..1_000_000)
+        var start = System.nanoTime()
+        val array = digits()
+        (System.nanoTime() - start).also { println("total: $it") }
 
-        val (result, _) = generateSequence(Circular.fromList(array) to 0) { (prev, i) ->
-            val next = prev.move()
-            if (i % 1000000 == 0) println(i)
-            next to i + 1
-        }.drop(n).first()
+        start = System.nanoTime()
+        val curr = Circular.fromInputList(array, true)
+        (System.nanoTime() - start).also { println("total: $it") }
 
-        val (first, second) = result.withHead(1).cycle(1).subList(2)
+        start = System.nanoTime()
+        for (i in 0 until n) {
+            curr.move()
+        }
+        (System.nanoTime() - start).also { println("total: $it, per inv: ${it.toDouble() / n}") }
+
+        val (first, second) = curr.withHead(1).cycle(1).also {  }.subList(2)
         println("$first, $second")
 
         return first.toLong() * second.toLong()
     }
 }
 
+@ExperimentalTime
 fun main() {
     println(Day23.input.part1(100))
     println(Day23.input.part2())
