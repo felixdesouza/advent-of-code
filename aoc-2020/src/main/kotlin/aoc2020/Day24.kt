@@ -3,10 +3,9 @@ package aoc2020
 import aoc2020.Day24.part1
 import aoc2020.Day24.part2
 import common.readLines
+import kotlin.math.abs
 
-private typealias HexCoordinate = Map<String, Int>
 object Day24 {
-    private val reduceCache: MutableMap<HexCoordinate, HexCoordinate> = mutableMapOf()
 
     val input = readLines("/aoc2020/day24.txt").map { it.parseLine() }
 
@@ -44,25 +43,13 @@ object Day24 {
             }
         }
 
-        return split(emptyList(), this).groupingBy { it }.eachCount().reduce()
+        return split(emptyList(), this).fold(HexCoordinate.origin) { current, next -> current.next(next) }
     }
-
-    fun HexCoordinate.iterate() = shortcut("ne", "se", "e") // done
-            .shortcut("nw", "sw", "w") // done
-            .opposite("ne", "sw") // done
-            .opposite("nw", "se") // done
-            .opposite("e", "w") // done
-            .shortcut("se", "w", "sw")
-            .shortcut("ne", "w", "nw")
-            .shortcut("sw", "e", "se")
-            .shortcut("nw", "e", "ne")
 
     fun List<HexCoordinate>.part1(): Int {
         return counts()
                 .entries.count { it.value % 2 == 1 }
     }
-    val directions = listOf("e", "w", "ne", "nw", "se", "sw")
-    val origin: HexCoordinate = directions.associateWith { 0 }
 
     private fun List<HexCoordinate>.counts() = groupingBy { it }.eachCount()
     enum class State {
@@ -70,10 +57,6 @@ object Day24 {
     }
 
     fun List<HexCoordinate>.part2(): Int {
-        fun HexCoordinate.neighbours(): List<HexCoordinate> {
-            return directions.map { (this + (it to (this.getOrDefault(it, 0) + 1))).reduce()  }
-        }
-
         val counts = counts().mapValues {
             when (it.value % 2) {
                 0 -> State.WHITE
@@ -81,8 +64,6 @@ object Day24 {
                 else -> throw AssertionError("not possible $it")
             }
         }
-
-        fun HexCoordinate.steps() = values.sum()
 
         fun Map.Entry<HexCoordinate, State>.iterate(source: Map<HexCoordinate, State>): State {
             val (coord, state) = this
@@ -112,47 +93,47 @@ object Day24 {
             return everything.mapValues { it.iterate(everything) }
         }
 
-        println("filling")
-        val inProgressGrid = counts.toMutableMap()
-        val fullGrid = generateSequence(setOf(origin)) { currentLevelCoordinates -> currentLevelCoordinates.nextLevelCoordinates() }
+        val fullGrid = generateSequence(setOf(HexCoordinate.origin)) { currentLevelCoordinates -> currentLevelCoordinates.nextLevelCoordinates() }
                 .withIndex()
-                .onEach { println("${it.index} -> ${it.value}") }
                 .map { it.value }
                 .take(20)
                 .flatten()
-                .forEach { inProgressGrid[it] = inProgressGrid.getOrDefault(it, State.WHITE) }
-        println("starting")
-        return generateSequence(inProgressGrid.toMap()) { it.step() }
+                .fold(counts) { inProgressGrid, next -> inProgressGrid + (next to inProgressGrid.getOrDefault(next, State.WHITE)) }
+
+        return generateSequence(fullGrid.toMap()) { it.step() }
                 .map { it.values.count { it == State.BLACK } }
                 .withIndex()
-                .onEach { println(it) }
                 .map { it.value }
                 .drop(100)
                 .first()
     }
+}
 
-    private fun HexCoordinate.reduce() = reduceCache.computeIfAbsent(this) { it.reduceRaw() }
-
-    private fun HexCoordinate.reduceRaw() =
-            generateSequence(this) { iterate() }.windowed(2).first { (a, b) -> a == b }.first()
-
-    private fun HexCoordinate.shortcut(direction1: String, direction2: String, resolved: String): HexCoordinate {
-        val resolvedAdditions = Integer.min(this[direction1] ?: 0, this[direction2] ?: 0)
-        return listOf(direction1, direction2).fold(this) { state, next ->
-            state + (next to (state[next] ?: 0) - resolvedAdditions)
-        }.let { it + (resolved to (it[resolved] ?: 0) + resolvedAdditions) }
+data class HexCoordinate(val x: Int, val y: Int, val z: Int) {
+    companion object {
+        val origin = HexCoordinate(0, 0, 0)
+        val directions = listOf("e", "w", "ne", "nw", "se", "sw")
     }
 
-    private fun HexCoordinate.opposite(direction1: String, direction2: String): HexCoordinate {
-        val changes = Integer.min(this[direction1] ?: 0, this[direction2] ?: 0)
-        return listOf(direction1, direction2).fold(this) { state, next ->
-            state + (next to (state[next] ?: 0) - changes)
+    fun next(instruction: String): HexCoordinate {
+        return when(instruction) {
+            "e" -> copy(x = x + 1, z = z - 1)
+            "w" -> copy(x = x - 1, z = z + 1)
+            "se" -> copy(x = x + 1, y = y - 1)
+            "sw" -> copy(y = y - 1, z = z + 1)
+            "ne" -> copy(y = y + 1, z = z - 1)
+            "nw" -> copy(x = x - 1, y = y + 1)
+            else -> throw AssertionError("unexpected")
         }
     }
+
+    fun neighbours(): Set<HexCoordinate> = directions.map { this.next(it) }.toSet()
+
+    fun steps() = listOf(x, y, z).map { abs(it) }.max()!!
 }
 
 fun main() {
-    println(Day24.testInput.part1())
+    println(Day24.input.part1())
     println(Day24.input.part2())
 }
 
