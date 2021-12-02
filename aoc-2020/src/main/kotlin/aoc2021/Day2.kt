@@ -32,8 +32,24 @@ object Day2 {
         }.let { (pos, depth) -> pos.toLong() * depth }
     }
 
+    fun part2(input: List<Pair<String, Int>>): Long {
+        return input.fold(Triple(0, 0, 0)) { position, next ->
+            val (instruction, quantity) = next
+            val bla = if (instruction == "forward") {
+                position.copy(first = position.first + quantity, second = position.second + quantity * position.third)
+            } else if (instruction == "down") {
+                position.copy(third = position.third + quantity)
+            } else {
+                position.copy(third = position.third - quantity)
+            }
+            bla.also { println(it) }
+        }.let { (pos, depth) -> pos.toLong() * depth }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         part1(input).also { println(it) }
+        part2(testInput).also { println(it) }
+        part2(input).also { println(it) }
     }
 }
