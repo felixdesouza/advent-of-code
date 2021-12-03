@@ -271,6 +271,9 @@ data class Coordinate4d(val x: Int, val y: Int, val z: Int, val w: Int) {
     }
 }
 
+fun Int.toBinaryString(numDigits: Int = 0): String = toLong().toBinaryString(numDigits)
+fun Long.toBinaryString(numDigits: Int = 0): String = java.lang.Long.toBinaryString(this).padStart(numDigits, '0')
+
 //data class Cube<T>(val grid: Map<Coordinate3d, T>) {
 //
 //    companion object {
