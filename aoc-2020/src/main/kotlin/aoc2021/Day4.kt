@@ -40,7 +40,7 @@ object Day4 {
         """.trimIndent().lines()
             .let { parseInput(it) }
 
-    fun part1(input: Pair<List<Int>, List<List<List<Int>>>>): Int {
+    fun part1(input: Pair<List<Int>, List<Board>>): Int {
         val (numbers, boards) = input
 
         val seen = hashSetOf<Int>()
@@ -49,73 +49,58 @@ object Day4 {
             seen.add(number)
 
             for (board in boards) {
-                for (row in board) {
-                    if (seen.containsAll(row)) {
-                        val chosen = number
-                        println(chosen)
-                        val unmarked = countUnmarked(seen, board)
-                        println(unmarked)
-                        return chosen * unmarked
-                    }
-                }
-
-                for (i in (board.indices)) {
-                    val column = mutableSetOf<Int>()
-                    for (j in board.indices) {
-                        column.add(board[j][i])
-                    }
-                    if (seen.containsAll(column)) {
-                        val chosen = number
-                        val unmarked = countUnmarked(seen, board)
-                        return chosen * unmarked
-                    }
+                if (board.hasBingo(seen)) {
+                    val unmarked = countUnmarked(seen, board)
+                    return number * unmarked
                 }
             }
         }
         throw AssertionError("should not reach here")
     }
 
-    private fun countUnmarked(seen: Set<Int>, board: List<List<Int>>): Int {
+    private fun countUnmarked(seen: Set<Int>, board: Board): Int {
         return board.map { it.filter { it !in seen }.sum() }.sum()
     }
 
-    fun part2(input: Pair<List<Int>, List<List<List<Int>>>>): Int {
+    private fun Board.hasBingo(seen: Set<Int>): Boolean {
+        for (row in this) {
+            if (seen.containsAll(row)) {
+                return true
+            }
+        }
+
+        for (i in indices) {
+            val column = mutableSetOf<Int>()
+            for (j in indices) {
+                column.add(this[j][i])
+            }
+            if (seen.containsAll(column)) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    fun part2(input: Pair<List<Int>, List<Board>>): Int {
         val (numbers, boards) = input
 
         val seen = hashSetOf<Int>()
-        val completeBoards = hashSetOf<List<List<Int>>>()
+        val completeBoards = hashSetOf<Board>()
         var newBoards = boards
         for (number in numbers) {
             seen.add(number)
 
             for (board in newBoards) {
-                for (row in board) {
-                    if (seen.containsAll(row)) {
-                        if (newBoards.size == 1) {
-                            return number * countUnmarked(seen, board)
-                        }
-                        completeBoards.add(board)
-                        break
+                if (board.hasBingo(seen)) {
+                    if (newBoards.size == 1) {
+                        return number * countUnmarked(seen, board)
                     }
+                    completeBoards.add(board)
                 }
-
-
-                for (i in (board.indices)) {
-                    val column = mutableSetOf<Int>()
-                    for (j in board.indices) {
-                        column.add(board[j][i])
-                    }
-                    if (seen.containsAll(column)) {
-                        if (newBoards.size == 1) {
-                            return number * countUnmarked(seen, board)
-                        }
-                        completeBoards.add(board)
-                        break
-                    }
-                }
-
-                newBoards = newBoards.filter { it !in completeBoards }
             }
+
+            newBoards = newBoards.filter { it !in completeBoards }
         }
         throw AssertionError("should not reach here")
     }
@@ -128,3 +113,5 @@ object Day4 {
         println(part2(input))
     }
 }
+
+private typealias Board = List<List<Int>>
