@@ -3,7 +3,7 @@ package aoc2021
 import common.readLines
 
 object Day4 {
-    fun parseInput(lines: List<String>): Pair<List<Int>, List<List<List<Int>>>> {
+    fun parseInput(lines: List<String>): Pair<List<Int>, List<Board>> {
         val draw = lines.first().split(",").map { Integer.parseInt(it) }
 
         val boards = lines.drop(2)
