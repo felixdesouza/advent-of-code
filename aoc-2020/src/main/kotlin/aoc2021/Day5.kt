@@ -47,7 +47,7 @@ object Day5 {
             return if (this.y < other.y) {
                 (this.y..other.y).map { Coordinate(x, it) }
             } else {
-                (this.y downTo other.y).map{ Coordinate(x, it) }
+                other.lineSegment(this)
             }
         }
 
@@ -55,7 +55,7 @@ object Day5 {
             return if (this.x < other.x) {
                 (this.x..other.x).map { Coordinate(it, y) }
             } else {
-                (this.x downTo other.x).map{ Coordinate(it, y) }
+                other.lineSegment(this)
             }
         }
 
