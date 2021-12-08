@@ -37,7 +37,41 @@ object Day8 {
                     setOf(a, b, c, d, f, g) to 9
             )
 
-            return output.map { mapping[it.toSet()]!! }.joinToString(separator = "") { it.toString() }.let { Integer.parseInt(it) }
+            return output.map { mapping[it.toSet()]!! }
+                    .joinToString(separator = "") { it.toString() }
+                    .let { Integer.parseInt(it) }
+        }
+
+        fun deduce2(): Int {
+            val byLength = input.groupBy { it.length }
+                    .mapValues { (_, values) -> values.map { it.toSet() } }
+
+            val size6Numbers = byLength[6]!!
+            val nine = size6Numbers.first { it.containsAll(four) }
+            val zero = size6Numbers.first { it.containsAll(seven) && !it.containsAll(four) }
+            val six = size6Numbers.first { !it.containsAll(four) && !it.containsAll(seven) }
+
+            val size5Numbers = byLength[5]!!
+            val two = size5Numbers.first { !nine.containsAll(it) }
+            val five = size5Numbers.first { (it + two) == eight }
+            val three = size5Numbers.first { it.containsAll(seven) }
+
+            val mapping = mapOf(
+                    zero to 0,
+                    one to 1,
+                    two to 2,
+                    three to 3,
+                    four to 4,
+                    five to 5,
+                    six to 6,
+                    seven to 7,
+                    eight to 8,
+                    nine to 9
+            )
+
+            return output.map { mapping[it.toSet()]!! }
+                    .joinToString(separator = "") { it.toString() }
+                    .let { Integer.parseInt(it) }
         }
     }
 
@@ -64,7 +98,7 @@ object Day8 {
     }
 
     fun part2(input: List<IO>): Int {
-        return input.asSequence().map { it.deduce() }.sum()
+        return input.asSequence().map { it.deduce2() }.sum()
     }
 
     @JvmStatic
