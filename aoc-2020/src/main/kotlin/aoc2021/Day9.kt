@@ -6,7 +6,7 @@ import common.Grid
 import common.openFile
 
 object Day9 {
-    fun parseInput(input: String): Grid<Int> = Grid.parse(input) { c -> c - '0'}
+    fun parseInput(input: String): Grid<Int> = Grid.parse(input) { c -> c - '0' }
 
     val input = openFile("/aoc2021/day9.txt")
             .let { parseInput(it) }
@@ -24,18 +24,14 @@ object Day9 {
         return lowPoints(input).sumBy { input[it]!! + 1 }
     }
 
-    // TODO: 09/12/2021 grid.filter and a grid.fold
     private fun lowPoints(input: Grid<Int>): List<Coordinate> {
-        return (0 until input.numRows).fold(listOf()) { acc, row ->
-            (0 until input.numColumns).fold(acc) { colAcc, column ->
-                val coordinate = Coordinate(column, row)
-                val value = input[coordinate]!!
-                val isLowPoint = coordinate.neighbours()
-                        .map { input[it] ?: Integer.MAX_VALUE }
-                        .all { it > value }
-                if (isLowPoint) colAcc + coordinate else colAcc
-            }
-        }
+        return input
+                .filter { coordinate, value ->
+                    coordinate.neighbours()
+                            .map { input[it] ?: Integer.MAX_VALUE }
+                            .all { it > value }
+                }
+                .keys.toList()
     }
 
     private fun findBasinForLowPoint(input: Grid<Int>, coordinate: Coordinate): Map<Coordinate, Int> {

@@ -110,7 +110,7 @@ fun lcm(a: Long, b: Long): Long = a / gcd(a, b) * b
 fun digits(number: Long) : List<Int> {
     tailrec fun helper(acc: Sequence<Int>, remaining: Long): Sequence<Int> {
         if (remaining == 0L) {
-            return acc;
+            return acc
         }
 
         val sequence = sequence {
@@ -198,6 +198,22 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
 
     fun <R> mapGrid(f: (Coordinate, T) -> R): Grid<R> {
         return Grid(grid.mapValues { (coordinate, value) -> f(coordinate, value) }, numRows, numColumns)
+    }
+
+    fun <A> fold(initial: A, operation: (acc: A, coordinate: Coordinate, next: T) -> A): A {
+        return (0 until numRows).fold(initial) { acc, row ->
+            (0 until numColumns).fold(acc) { colAcc, column ->
+                val coordinate = Coordinate(column, row)
+                val value = grid[coordinate]!!
+                operation(colAcc, coordinate, value)
+            }
+        }
+    }
+
+    fun filter(f: (Coordinate, T) -> Boolean): Map<Coordinate, T> {
+        return fold(mapOf()) { acc, coord, next ->
+            if (f(coord, next)) acc + (coord to next) else acc
+        }
     }
 
     operator fun get(key: Coordinate): T? {
