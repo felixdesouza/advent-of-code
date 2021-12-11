@@ -85,7 +85,7 @@ object Day20 {
                 (1 until grid.numColumns - 1).map { x ->
                     Coordinate(x - 1, y - 1) to grid[Coordinate(x, y)]!!
                 }
-            }.toMap().let { Grid(it, grid.numRows - 2, grid.numColumns - 2) }
+            }.toMap().let { Grid(it.toMutableMap(), grid.numRows - 2, grid.numColumns - 2) }
 
             return copy(grid = newGrid)
         }
@@ -192,7 +192,7 @@ object Day20 {
                 .let { Tile(
                         0,
                         Orientation.Original,
-                        Grid(it, it.keys.map { it.y }.max()!! + 1, it.keys.map { it.x }.max()!! + 1)) }
+                        Grid(it.toMutableMap(), it.keys.map { it.y }.max()!! + 1, it.keys.map { it.x }.max()!! + 1)) }
 
         val seaMonsterBoundingBox = Coordinate.boundingBox(seaMonster)
         val correctOrientations = assembled.orientations()

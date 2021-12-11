@@ -164,7 +164,7 @@ fun <T> dijkstra(graph: ValueGraph<T, Int>, startingNode: T, validate: Boolean =
     return distances
 }
 
-data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumns: Int) {
+data class Grid<T>(val grid: MutableMap<Coordinate, T>, val numRows: Int, val numColumns: Int) {
 
     companion object {
         fun parse(input: String): Grid<Char> {
@@ -183,7 +183,7 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
                 .map { (row, text) -> text.map(f).withIndex().map { (col, value) -> Coordinate(col, row) to value } }
                 .flatten()
                 .toMap()
-            return Grid(grid, numRows, numColumns)
+            return Grid(grid.toMutableMap(), numRows, numColumns)
         }
     }
 
@@ -197,7 +197,7 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
     }
 
     fun <R> mapGrid(f: (Coordinate, T) -> R): Grid<R> {
-        return Grid(grid.mapValues { (coordinate, value) -> f(coordinate, value) }, numRows, numColumns)
+        return Grid(grid.mapValues { (coordinate, value) -> f(coordinate, value) }.toMutableMap(), numRows, numColumns)
     }
 
     fun <A> fold(initial: A, operation: (acc: A, coordinate: Coordinate, next: T) -> A): A {
@@ -218,6 +218,10 @@ data class Grid<T>(val grid: Map<Coordinate, T>, val numRows: Int, val numColumn
 
     operator fun get(key: Coordinate): T? {
         return grid[key]
+    }
+
+    operator fun set(key: Coordinate, value: T) {
+        grid[key] = value
     }
 }
 

@@ -38,7 +38,7 @@ object Day11 {
                 .sumBy { it.countFlash() }
     }
 
-    fun Grid<Int>.runStep(): Grid<Int> {
+    private fun Grid<Int>.runStep(): Grid<Int> {
         val flashSet = hashSetOf<Coordinate>()
         val incremented = this.mapGrid { _, i -> i + 1 }
         val seed = incremented.filter { _, i -> i > 9 }
@@ -63,7 +63,7 @@ object Day11 {
         return incremented
     }
 
-    fun Grid<Int>.countFlash(): Int {
+    private fun Grid<Int>.countFlash(): Int {
         return this.filter { _, i -> i == 0 }.count()
     }
 
