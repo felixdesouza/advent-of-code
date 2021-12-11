@@ -26,9 +26,6 @@ object Day10 {
         return input.map { checkCorruptedLine(it) }
                 .mapNotNull { it.first }
                 .map { it.score() }
-                .groupingBy { it }
-                .eachCount()
-                .map { (score, count) -> score * count }
                 .sum()
     }
 
