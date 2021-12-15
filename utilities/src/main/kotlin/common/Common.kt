@@ -1,6 +1,5 @@
 package common
 
-import com.google.common.collect.Queues
 import com.google.common.graph.Graph
 import com.google.common.graph.ValueGraph
 import com.google.common.graph.ValueGraphBuilder
@@ -8,6 +7,7 @@ import io.vavr.kotlin.toVavrList
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.random.Random
 
 fun readLines(path: String): List<String> {
     val file = openFile(path)
@@ -144,10 +144,11 @@ fun <T> dijkstra(graph: Graph<T>, startingNode: T, validate: Boolean = true): Ma
 fun <T> dijkstra(graph: ValueGraph<T, Int>, startingNode: T, validate: Boolean = true): Map<T, Int> {
     val distances = graph.nodes().associateWith { if (startingNode == it) 0 else Int.MAX_VALUE }.toMutableMap()
 
-    val queue = Queues.newArrayDeque<T>(setOf(startingNode))
+    val queue = sortedSetOf(compareBy({ it.second }, {it.hashCode()}, {Random.nextInt()}), startingNode to 0)
     val visited = mutableSetOf<T>()
+
     while (queue.isNotEmpty()) {
-        val current = queue.remove()
+        val (current, _) = queue.pollFirst()!!
         if (current in visited) continue
         visited.add(current)
 
@@ -155,8 +156,7 @@ fun <T> dijkstra(graph: ValueGraph<T, Int>, startingNode: T, validate: Boolean =
             val alternativeDistance = distances[current]!! + graph.edgeValueOrDefault(current, successor, Int.MAX_VALUE)!!
             distances[successor] = min(distances[successor]!!, alternativeDistance)
         }
-
-        queue.addAll(graph.successors(current))
+        queue.addAll(graph.successors(current).map { it to distances[it]!! })
     }
 
     if (validate && (graph.nodes() - visited).isNotEmpty()) throw UnsupportedOperationException()
