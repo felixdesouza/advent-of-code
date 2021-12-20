@@ -209,9 +209,7 @@ data class Grid<T>(val grid: MutableMap<Coordinate, T>, val numRows: Int, val nu
     }
 
     fun filter(f: (Coordinate, T) -> Boolean): Map<Coordinate, T> {
-        return fold(mapOf()) { acc, coord, next ->
-            if (f(coord, next)) acc + (coord to next) else acc
-        }
+        return grid.filter { (coord, next) -> f(coord, next) }
     }
 
     operator fun get(key: Coordinate): T? {
