@@ -20,8 +20,6 @@ fun openFile(path: String): String {
         .getResource(path)
         .toURI()
 
-    println(resourcePath)
-
     return File(resourcePath).readText().trimEnd()
 }
 
@@ -254,6 +252,10 @@ data class Coordinate3d(val x: Int, val y: Int, val z: Int) {
 
         return coords.minus(this)
     }
+
+    operator fun plus(other: Coordinate3d) = Coordinate3d(x + other.x, y + other.y, z + other.z)
+
+    fun distance(other: Coordinate3d) = abs(other.x - x) + abs(other.y - y) + abs(other.z - z)
 }
 
 data class Coordinate4d(val x: Int, val y: Int, val z: Int, val w: Int) {
