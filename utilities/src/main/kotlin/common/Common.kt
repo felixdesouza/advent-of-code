@@ -49,6 +49,10 @@ data class Coordinate(val x: Int, val y: Int) {
         }
     }
 
+    fun isBoundedBy(topLeft: Coordinate, bottomRight: Coordinate): Boolean {
+        return y in topLeft.y..bottomRight.y && x in topLeft.x..bottomRight.x
+    }
+
     fun absoluteDistance(other: Coordinate): Int {
         return when {
             other.x == this.x -> abs(other.y - this.y)
@@ -85,6 +89,8 @@ data class Coordinate(val x: Int, val y: Int) {
         return Coordinate(this.x * multiplier, this.y * multiplier)
     }
 }
+
+fun <T : Any> iterate(n: Int, initial: T, f: (T) -> T?) = generateSequence(initial, f).drop(n).first()
 
 fun gcd(a: Int, b: Int): Int = gcd(a.toLong(), b.toLong()).toInt()
 tailrec fun gcd(a: Long, b: Long): Long {

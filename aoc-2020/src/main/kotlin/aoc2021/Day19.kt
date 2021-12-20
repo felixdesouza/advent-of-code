@@ -85,13 +85,6 @@ object Day19 {
     data class ResolvedScanner(val scanner: Scanner, val coordinate: Coordinate3d)
 
     fun Coordinate.rotate90() = Coordinate(this.y, -this.x)
-    fun Coordinate.rotate90(n: Int): Coordinate {
-        var coord = this
-        for (i in 0 until n) {
-            coord = coord.rotate90()
-        }
-        return coord
-    }
 
     private fun Coordinate3d.project(axis: Axis) = when (axis) {
         Axis.X -> Coordinate(-y, z)
@@ -106,7 +99,7 @@ object Day19 {
     }
 
     private fun Coordinate3d.rotate(about: Axis): Coordinate3d {
-        return project(about).rotate90(1).explode(about, this)
+        return project(about).rotate90().explode(about, this)
     }
 
     private fun resolveScanners(input: List<Scanner>): List<ResolvedScanner> {
