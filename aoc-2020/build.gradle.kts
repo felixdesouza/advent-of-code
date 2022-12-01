@@ -10,6 +10,9 @@ dependencies {
     implementation(project(":utilities"))
     implementation("ru.lanwen.verbalregex:java-verbal-expressions:1.5")
     implementation("com.google.guava:guava:28.1-jre")
-
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
+    implementation("com.github.kittinunf.fuel:fuel:2.3.0")
+    implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.0")
+    implementation("com.github.h0tk3y.betterParse:better-parse:0.4.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
