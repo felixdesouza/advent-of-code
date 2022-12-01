@@ -1,9 +1,9 @@
 package aoc2022
 
-import common.openFile
+import common.Problem
 
-object Day1 {
-    val input = openFile("/aoc2022/day1.txt").let { parseInput(it) }
+object Day1: Problem() {
+    val input = rawInput.let { parseInput(it) }
     val testInput = """
         1000
         2000
@@ -22,7 +22,7 @@ object Day1 {
     """.trimIndent().let { parseInput(it) }
 
     private fun parseInput(rawInput: String): List<List<Int>> {
-        return rawInput.split("\n\n").map { it.lines().map { Integer.parseInt(it) } }
+        return rawInput.split("\n\n").map { it.lines().map { it.toInt() } }
     }
 
     fun part1(numbers: List<List<Int>>): Int {
